@@ -26,6 +26,7 @@ parse_yaml_list() {
 
 PROVIDER="$(parse_yaml_value "provider")"
 AWS_REGION="$(parse_yaml_value "aws_region")"
+AWS_PROFILE="$(parse_yaml_value "aws_profile" | tr -d "'")"
 
 # --- Validate ---
 if [ -z "$PROVIDER" ]; then
@@ -48,6 +49,7 @@ fi
 
 echo "Provider: $PROVIDER"
 [ -n "$AWS_REGION" ] && echo "Region:   $AWS_REGION"
+[ -n "$AWS_PROFILE" ] && echo "Profile:  $AWS_PROFILE"
 echo ""
 
 # --- Run per-tool setup scripts ---
@@ -67,7 +69,7 @@ while IFS= read -r tool; do
         continue
     fi
     echo "────────────────────────────────────────"
-    bash "$tool_script" "$PROVIDER" "$AWS_REGION"
+    bash "$tool_script" "$PROVIDER" "$AWS_REGION" "$AWS_PROFILE"
     echo ""
 
     if [ "$tool" = "cursor" ]; then

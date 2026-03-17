@@ -2,10 +2,14 @@
 # Copy this file to config.yaml and edit to match your setup.
 #
 # provider: How you access Claude models
-#   - bedrock:   AWS Bedrock (requires AWS credentials configured via `aws configure` or SSO)
+#   - bedrock:    AWS Bedrock (via SSO or static credentials)
 #   - anthropic:  Direct Anthropic API (requires ANTHROPIC_API_KEY)
 provider: bedrock
 aws_region: us-east-1    # Required if provider is bedrock
+
+# AWS SSO profile (recommended for Bedrock)
+# If set, Claude Code will use this profile and auto-refresh credentials via `aws sso login`
+aws_profile: ''          # e.g. 'my-sso-profile'
 
 # tools: Which AI coding tools to configure
 # Uncomment the tools you use.

@@ -219,7 +219,19 @@ Please test your changes with `./setup.sh` before submitting. For container chan
 ## Provider Options
 
 ### AWS Bedrock
-Set `provider: bedrock` and `aws_region` in your `config.yaml`. Requires AWS credentials configured via `aws configure`, SSO, or environment variables.
+
+Set `provider: bedrock` and `aws_region` in your `config.yaml`.
+
+**With SSO (recommended):** Set `aws_profile` to your SSO profile name. The setup script configures Claude Code to automatically refresh credentials via `aws sso login` when they expire mid-session.
+
+```yaml
+provider: bedrock
+aws_region: us-east-1
+aws_profile: my-sso-profile
+```
+
+**Without SSO:** Leave `aws_profile` empty. Credentials are read from `aws configure`, environment variables, or instance roles.
 
 ### Anthropic API
+
 Set `provider: anthropic` in your `config.yaml`. Requires `ANTHROPIC_API_KEY` set in your environment.

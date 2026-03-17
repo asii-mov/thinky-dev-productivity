@@ -4,6 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROVIDER="${1:-}"
 AWS_REGION="${2:-}"
+AWS_PROFILE="${3:-}"
 
 CLAUDE_DIR="$HOME/.claude"
 SETTINGS_FILE="$CLAUDE_DIR/settings.json"
@@ -42,16 +43,26 @@ if command -v jq &>/dev/null; then
     case "$PROVIDER" in
         bedrock)
             echo "    Setting provider: AWS Bedrock (region: $AWS_REGION)"
-            jq --arg region "$AWS_REGION" '
-                .env.CLAUDE_CODE_USE_BEDROCK = "1" |
-                .env.AWS_REGION = $region
-            ' "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp"
+            if [ -n "$AWS_PROFILE" ]; then
+                echo "    Setting AWS SSO profile: $AWS_PROFILE (with auto-refresh)"
+                jq --arg region "$AWS_REGION" --arg profile "$AWS_PROFILE" '
+                    .env.CLAUDE_CODE_USE_BEDROCK = "1" |
+                    .env.AWS_REGION = $region |
+                    .env.AWS_PROFILE = $profile |
+                    .awsAuthRefresh = "aws sso login --profile " + $profile
+                ' "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp"
+            else
+                jq --arg region "$AWS_REGION" '
+                    .env.CLAUDE_CODE_USE_BEDROCK = "1" |
+                    .env.AWS_REGION = $region
+                ' "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp"
+            fi
             mv "$SETTINGS_FILE.tmp" "$SETTINGS_FILE"
             ;;
         anthropic)
             echo "    Setting provider: Anthropic API"
             # Remove bedrock vars if they exist from a previous run
-            jq 'del(.env.CLAUDE_CODE_USE_BEDROCK, .env.AWS_REGION)' \
+            jq 'del(.env.CLAUDE_CODE_USE_BEDROCK, .env.AWS_REGION, .env.AWS_PROFILE, .awsAuthRefresh)' \
                 "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp"
             mv "$SETTINGS_FILE.tmp" "$SETTINGS_FILE"
             if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
