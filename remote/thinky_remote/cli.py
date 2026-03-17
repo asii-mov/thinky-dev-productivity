@@ -6,6 +6,7 @@ import time
 from pathlib import Path
 
 import click
+import requests
 from jinja2 import Template
 
 from thinky_remote.api import DOClient
@@ -375,6 +376,100 @@ def destroy(name: str):
         client.delete_snapshot(int(snapshot["id"]))
 
     click.echo(f"Sandbox '{name}' destroyed.")
+
+
+def fetch_github_keys(username: str) -> list[str]:
+    """Fetch public SSH keys from a GitHub user profile."""
+    url = f"https://github.com/{username}.keys"
+    resp = requests.get(url, timeout=10)
+    if resp.status_code == 404:
+        raise click.ClickException(f"GitHub user '{username}' not found")
+    resp.raise_for_status()
+    keys = [line.strip() for line in resp.text.strip().splitlines() if line.strip()]
+    if not keys:
+        raise click.ClickException(f"GitHub user '{username}' has no public SSH keys")
+    return keys
+
+
+def get_droplet_ip(droplet: dict) -> str | None:
+    """Extract public IPv4 from a droplet dict."""
+    for net in droplet.get("networks", {}).get("v4", []):
+        if net["type"] == "public":
+            return net["ip_address"]
+    return None
+
+
+@cli.command()
+@click.argument("name")
+@click.argument("users")
+def share(name: str, users: str):
+    """Share a sandbox with GitHub users by adding their SSH keys.
+
+    USERS is a comma-separated list of GitHub usernames.
+
+    Example: thinky-remote share my-sandbox user1,user2,user3
+    """
+    config = load_config()
+    client = get_client(config)
+
+    droplet = find_droplet_by_name(client, name)
+    if not droplet:
+        click.echo(f"Sandbox '{name}' not found.", err=True)
+        sys.exit(1)
+
+    ip = get_droplet_ip(droplet)
+    if not ip:
+        click.echo(f"Sandbox '{name}' has no public IP.", err=True)
+        sys.exit(1)
+
+    usernames = [u.strip() for u in users.split(",") if u.strip()]
+    if not usernames:
+        click.echo("No usernames provided.", err=True)
+        sys.exit(1)
+
+    # Collect all keys
+    all_keys = []
+    for gh_user in usernames:
+        click.echo(f"Fetching keys for GitHub user: {gh_user}")
+        try:
+            keys = fetch_github_keys(gh_user)
+            click.echo(f"  Found {len(keys)} key(s)")
+            all_keys.extend(keys)
+        except click.ClickException as e:
+            click.echo(f"  {e.message}", err=True)
+
+    if not all_keys:
+        click.echo("No keys to add.", err=True)
+        sys.exit(1)
+
+    # Build SSH command to append keys
+    vm_user = config.get("username", "dev")
+    ssh_key = Path(config["ssh_public_key"]).expanduser()
+    identity = str(ssh_key).replace(".pub", "")
+
+    # Append each key to authorized_keys on the VM
+    key_block = "\n".join(all_keys)
+    cmd = f"echo '{key_block}' >> /home/{vm_user}/.ssh/authorized_keys"
+
+    click.echo(f"Adding {len(all_keys)} key(s) to {name}...")
+    result = subprocess.run(
+        [
+            "ssh",
+            "-o", "StrictHostKeyChecking=accept-new",
+            "-i", identity,
+            f"{vm_user}@{ip}",
+            cmd,
+        ],
+        capture_output=True,
+        text=True,
+    )
+
+    if result.returncode != 0:
+        click.echo(f"Failed to add keys: {result.stderr.strip()}", err=True)
+        sys.exit(1)
+
+    click.echo(f"\nShared '{name}' with: {', '.join(usernames)}")
+    click.echo(f"They can connect with: ssh {vm_user}@{ip}")
 
 
 def main():

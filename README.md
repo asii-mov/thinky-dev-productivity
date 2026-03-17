@@ -106,7 +106,10 @@ uv venv .venv && uv pip install -e .
 # 5. Wake it later (restores from snapshot)
 .venv/bin/thinky-remote wake my-sandbox
 
-# 6. Destroy when done
+# 6. Share with teammates (fetches their public keys from GitHub)
+.venv/bin/thinky-remote share my-sandbox teammate1,teammate2
+
+# 7. Destroy when done
 .venv/bin/thinky-remote destroy my-sandbox
 ```
 
