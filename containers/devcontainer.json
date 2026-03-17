@@ -1,0 +1,76 @@
+{
+  "$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainer.schema.json",
+  "name": "Thinky Dev Sandbox",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      "TZ": "${localEnv:TZ:UTC}",
+      "GIT_DELTA_VERSION": "0.18.2",
+      "ZSH_IN_DOCKER_VERSION": "1.2.1"
+    }
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "runArgs": [
+    "--cap-add=NET_ADMIN",
+    "--cap-add=NET_RAW"
+  ],
+  "init": true,
+  "updateRemoteUserUID": true,
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "anthropic.claude-code"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "bash": { "path": "bash", "icon": "terminal-bash" },
+          "zsh": { "path": "zsh" }
+        },
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+        "files.trimFinalNewlines": true
+      }
+    }
+  },
+  "remoteUser": "vscode",
+  "mounts": [
+    "source=thinky-${localWorkspaceFolderBasename}-history-${devcontainerId},target=/commandhistory,type=volume",
+    "source=thinky-${localWorkspaceFolderBasename}-claude-${devcontainerId},target=/home/vscode/.claude,type=volume",
+    "source=thinky-${localWorkspaceFolderBasename}-codex-${devcontainerId},target=/home/vscode/.codex,type=volume",
+    "source=thinky-${localWorkspaceFolderBasename}-gh-${devcontainerId},target=/home/vscode/.config/gh,type=volume",
+    "source=${localEnv:HOME}/.gitconfig,target=/home/vscode/.gitconfig,type=bind,readonly"
+  ],
+  "containerEnv": {
+    "NODE_OPTIONS": "--max-old-space-size=4096",
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude",
+    "POWERLEVEL9K_DISABLE_GITSTATUS": "true",
+    "GIT_CONFIG_GLOBAL": "/home/vscode/.gitconfig.local",
+    "UV_LINK_MODE": "copy",
+    "NPM_CONFIG_IGNORE_SCRIPTS": "true",
+    "NPM_CONFIG_AUDIT": "true",
+    "NPM_CONFIG_FUND": "false",
+    "NPM_CONFIG_SAVE_EXACT": "true",
+    "NPM_CONFIG_UPDATE_NOTIFIER": "false",
+    "NPM_CONFIG_MINIMUM_RELEASE_AGE": "1440",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PIP_DISABLE_PIP_VERSION_CHECK": "1"
+  },
+  "remoteEnv": {
+    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY:}",
+    "CLAUDE_CODE_OAUTH_TOKEN": "${localEnv:CLAUDE_CODE_OAUTH_TOKEN:}",
+    "CLAUDE_CODE_USE_BEDROCK": "${localEnv:CLAUDE_CODE_USE_BEDROCK:}",
+    "AWS_REGION": "${localEnv:AWS_REGION:}",
+    "AWS_ACCESS_KEY_ID": "${localEnv:AWS_ACCESS_KEY_ID:}",
+    "AWS_SECRET_ACCESS_KEY": "${localEnv:AWS_SECRET_ACCESS_KEY:}",
+    "AWS_SESSION_TOKEN": "${localEnv:AWS_SESSION_TOKEN:}",
+    "OPENAI_API_KEY": "${localEnv:OPENAI_API_KEY:}",
+    "GITHUB_TOKEN": "${localEnv:GITHUB_TOKEN:}"
+  },
+  "initializeCommand": "test -f \"$HOME/.gitconfig\" || touch \"$HOME/.gitconfig\"",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
+  "workspaceFolder": "/workspace",
+  "postCreateCommand": "uv run --no-project /opt/post_install.py"
+}

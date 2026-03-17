@@ -1,0 +1,26 @@
+# Org baseline Codex CLI configuration
+# See: https://developers.openai.com/codex/config-reference/
+
+[model]
+# Default model — staff can override in ~/.codex/config.toml
+# model = "o4-mini"
+
+[approvals]
+# Require approval before making changes
+# Options: suggest, auto-edit, full-auto
+mode = "suggest"
+
+[sandbox]
+# Sandbox mode for command execution
+# Options: standard, lenient, off
+mode = "standard"
+
+[shell_environment]
+# Restrict env vars passed to subprocesses to prevent secret leakage
+inherit = "core"
+excludes = [
+    "ANTHROPIC_API_KEY",
+    "OPENAI_API_KEY",
+    "AWS_SECRET_ACCESS_KEY",
+    "AWS_SESSION_TOKEN",
+]

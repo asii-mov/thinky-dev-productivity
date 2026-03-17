@@ -1,0 +1,14 @@
+config.yaml
+.cursor/
+containers/.env
+containers/org-configs/
+.claude/
+*.egg-info/
+__pycache__/
+.venv/
+
+# Ignore all .md except README and ONBOARDING
+*.md
+!README.md
+!**/README.md
+!**/ONBOARDING.md

@@ -1,0 +1,10 @@
+---
+description: "Organization-wide coding standards"
+globs:
+alwaysApply: true
+---
+
+# Org Coding Standards
+
+<!-- Add your org-specific coding standards here. Staff can submit PRs to update. -->
+<!-- Security controls (secret detection, etc.) are enforced via pre-commit hooks, not prompts. -->

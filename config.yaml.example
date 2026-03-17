@@ -1,0 +1,15 @@
+# Thinky AI Tools Configuration
+# Copy this file to config.yaml and edit to match your setup.
+#
+# provider: How you access Claude models
+#   - bedrock:   AWS Bedrock (requires AWS credentials configured via `aws configure` or SSO)
+#   - anthropic:  Direct Anthropic API (requires ANTHROPIC_API_KEY)
+provider: bedrock
+aws_region: us-east-1    # Required if provider is bedrock
+
+# tools: Which AI coding tools to configure
+# Uncomment the tools you use.
+tools:
+  - claude-code
+  # - cursor
+  # - codex
