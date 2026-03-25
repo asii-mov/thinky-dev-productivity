@@ -1,6 +1,17 @@
-# Thinky Dev Productivity — AI Coding Tools
+# Thinky Dev — Secure AI Coding Tools
 
-Centralized configuration and onboarding for AI coding tools across the org. Clone this repo, pick your provider and tools, and run the setup script.
+Centralized configuration and onboarding for AI coding tools across the org.
+
+## Features
+- Spawn DigitalOcean droplets ready to use Claude code in a containerized environment, add your team easily using their GitHub usernames.
+- Configure Claude Code to AWS Bedrock or other providers by simply running setup.sh
+- Hardened images and networking used by default
+
+TODO:
+- Secure secrets management between local/remote
+- Harden Codex
+- Best practice for allowing AI to use API keys without exposing them
+- Improve README.md for clarity and conciseness 
 
 ## Quickstart
 
@@ -23,39 +34,6 @@ cp config.yaml.example config.yaml
 | **Claude Code** | Fully automated | Configures settings.json, CLAUDE.md, and provider env vars |
 | **Cursor** | Partial | Copies project rules automatically; global settings require manual GUI steps (see [Cursor Onboarding](configs/cursor/ONBOARDING.md)) |
 | **Codex** | Fully automated | Configures config.toml and provider settings |
-
-## Repo Structure
-
-```
-config.yaml.example          # Template - copy to config.yaml
-setup.sh                     # Orchestrator - reads config.yaml, runs per-tool setup
-configs/
-  claude-code/
-    settings.json             # Org baseline settings
-    CLAUDE.md                 # Org coding standards
-    setup.sh                  # Claude Code setup
-  cursor/
-    rules/                    # .mdc rule files copied to .cursor/rules/
-    setup.sh                  # Cursor setup (partial)
-    ONBOARDING.md             # Manual steps for global Cursor config
-  codex/
-    config.toml               # Org baseline config
-    setup.sh                  # Codex setup
-containers/
-  Dockerfile                  # Sandbox container with Claude Code + Codex pre-installed
-  devcontainer.json           # Devcontainer spec for VS Code / CLI usage
-  build.sh                    # Builds the container image from org configs
-  run.sh                      # Wrapper - reads .env, launches container with volumes
-  env.example                 # Template for API keys (copy to .env)
-  post_install.py             # Entrypoint - applies org configs, seeds auth
-remote/
-  thinky_remote/              # Python CLI for DigitalOcean sandbox VMs
-    cli.py                    # Commands: create, destroy, hibernate, wake, ssh, config
-    api.py                    # DigitalOcean API client
-    config.py                 # CLI config management
-    templates/cloud-init.yaml # VM provisioning (Docker, Claude Code, Codex, UFW, fail2ban)
-  pyproject.toml              # Install with: uv venv .venv && uv pip install -e .
-```
 
 ## Container Sandbox (Local Dev)
 
